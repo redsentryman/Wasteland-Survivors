@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>末日生存游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #282828;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+            gap: 2px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        .tile {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #444;
+            cursor: pointer;
+        }
+        .tile.terrain {
+            background-color: #6c6c6c;
+        }
+        .tile.resource {
+            background-color: #8b8b00;
+        }
+        .tile.explored {
+            background-color: #aaa;
+        }
+        #stats {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>末日生存游戏</h1>
+    <div id="game-board"></div>
+    <div id="stats">
+        <p>资源: <span id="resources">100</span></p>
+        <p>行动点: <span id="actions">10</span></p>
+        <button onclick="endTurn()">结束回合</button>
+    </div>
+
+    <script>
+        // 游戏设置
+        const gridSize = 10;
+        let resources = 100;
+        let actions = 10;
+
+        // 地图初始化
+        function createBoard() {
+            const board = document.getElementById("game-board");
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const tile = document.createElement("div");
+                    tile.classList.add("tile");
+                    tile.dataset.x = x;
+                    tile.dataset.y = y;
+                    tile.addEventListener("click", handleTileClick);
+                    // 随机地设置资源格子
+                    if (Math.random() < 0.2) {
+                        tile.classList.add("resource");
+                        tile.dataset.resource = Math.floor(Math.random() * 50) + 10; // 资源值
+                    } else {
+                        tile.classList.add("terrain");
+                    }
+                    board.appendChild(tile);
+                }
+            }
+        }
+
+        // 处理点击格子
+        function handleTileClick(event) {
+            const tile = event.target;
+            if (tile.classList.contains("explored") || actions <= 0) return;
+
+            tile.classList.add("explored");
+            if (tile.classList.contains("resource")) {
+                const resourceAmount = tile.dataset.resource;
+                resources += parseInt(resourceAmount);
+                document.getElementById("resources").innerText = resources;
+            }
+
+            actions--;
+            document.getElementById("actions").innerText = actions;
+        }
+
+        // 结束回合
+        function endTurn() {
+            actions = 10; // 每回合恢复10行动点
+            document.getElementById("actions").innerText = actions;
+        }
+
+        // 初始化游戏
+        createBoard();
+    </script>
+</body>
+</html>
