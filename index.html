@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
             text-align: center;
             padding: 20px;
         }
+
         #game-board {
             display: grid;
             grid-template-columns: repeat(10, 40px);
@@ -20,6 +22,7 @@
             justify-content: center;
             margin: 20px auto;
         }
+
         .tile {
             width: 40px;
             height: 40px;
@@ -30,25 +33,45 @@
             background-color: #444;
             cursor: pointer;
         }
+
         .tile.terrain {
             background-color: #6c6c6c;
         }
+
         .tile.resource {
             background-color: #8b8b00;
         }
+
+        .tile.food {
+            background-color: #228B22;
+        }
+
+        .tile.water {
+            background-color: #1E90FF;
+        }
+
+        .tile.enemy {
+            background-color: #B22222;
+        }
+
         .tile.explored {
             background-color: #aaa;
         }
+
         #stats {
             margin-top: 20px;
         }
     </style>
 </head>
+
 <body>
     <h1>末日生存游戏</h1>
     <div id="game-board"></div>
     <div id="stats">
         <p>资源: <span id="resources">100</span></p>
+        <p>食物: <span id="food">50</span></p>
+        <p>水源: <span id="water">50</span></p>
+        <p>健康: <span id="health">100</span></p>
         <p>行动点: <span id="actions">10</span></p>
         <button onclick="endTurn()">结束回合</button>
     </div>
@@ -57,6 +80,9 @@
         // 游戏设置
         const gridSize = 10;
         let resources = 100;
+        let food = 50;
+        let water = 50;
+        let health = 100;
         let actions = 10;
 
         // 地图初始化
@@ -69,13 +95,22 @@
                     tile.dataset.x = x;
                     tile.dataset.y = y;
                     tile.addEventListener("click", handleTileClick);
-                    // 随机地设置资源格子
-                    if (Math.random() < 0.2) {
+
+                    // 随机生成不同类型的格子
+                    const rand = Math.random();
+                    if (rand < 0.2) {
                         tile.classList.add("resource");
-                        tile.dataset.resource = Math.floor(Math.random() * 50) + 10; // 资源值
+                        tile.dataset.resource = Math.floor(Math.random() * 50) + 10;
+                    } else if (rand < 0.3) {
+                        tile.classList.add("food");
+                    } else if (rand < 0.4) {
+                        tile.classList.add("water");
+                    } else if (rand < 0.5) {
+                        tile.classList.add("enemy");
                     } else {
                         tile.classList.add("terrain");
                     }
+
                     board.appendChild(tile);
                 }
             }
@@ -84,27 +119,87 @@
         // 处理点击格子
         function handleTileClick(event) {
             const tile = event.target;
-            if (tile.classList.contains("explored") || actions <= 0) return;
+            if (tile.classList.contains("explored") || actions <= 0 || health <= 0) return;
 
             tile.classList.add("explored");
+
             if (tile.classList.contains("resource")) {
                 const resourceAmount = tile.dataset.resource;
                 resources += parseInt(resourceAmount);
                 document.getElementById("resources").innerText = resources;
+            } else if (tile.classList.contains("food")) {
+                food += 10;
+                document.getElementById("food").innerText = food;
+            } else if (tile.classList.contains("water")) {
+                water += 10;
+                document.getElementById("water").innerText = water;
+            } else if (tile.classList.contains("enemy")) {
+                health -= 20; // 与敌人战斗，扣除健康
+                document.getElementById("health").innerText = health;
+            }
+
+            // 每回合消耗食物和水
+            if (food > 0 && water > 0) {
+                food -= 5;
+                water -= 5;
+                document.getElementById("food").innerText = food;
+                document.getElementById("water").innerText = water;
+            } else {
+                health -= 10; // 食物或水源不足，健康下降
+                document.getElementById("health").innerText = health;
             }
 
             actions--;
             document.getElementById("actions").innerText = actions;
+
+            // 判断游戏是否结束
+            if (health <= 0) {
+                alert("你死了！游戏结束！");
+                resetGame();
+            }
         }
 
         // 结束回合
         function endTurn() {
             actions = 10; // 每回合恢复10行动点
             document.getElementById("actions").innerText = actions;
+
+            // 每回合消耗食物和水源
+            if (food > 0 && water > 0) {
+                food -= 5;
+                water -= 5;
+                document.getElementById("food").innerText = food;
+                document.getElementById("water").innerText = water;
+            } else {
+                health -= 10; // 食物或水源不足，健康下降
+                document.getElementById("health").innerText = health;
+            }
+
+            // 判断游戏是否结束
+            if (health <= 0) {
+                alert("你死了！游戏结束！");
+                resetGame();
+            }
+        }
+
+        // 重置游戏
+        function resetGame() {
+            resources = 100;
+            food = 50;
+            water = 50;
+            health = 100;
+            actions = 10;
+            document.getElementById("resources").innerText = resources;
+            document.getElementById("food").innerText = food;
+            document.getElementById("water").innerText = water;
+            document.getElementById("health").innerText = health;
+            document.getElementById("actions").innerText = actions;
+            createBoard();
         }
 
         // 初始化游戏
         createBoard();
     </script>
 </body>
+
 </html>
